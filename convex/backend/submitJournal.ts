@@ -110,7 +110,7 @@ export const submit = action({
     userId: v.id("users"),
     journalText: v.string(),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<any> => {
     // 1. Initialize Gemini
     // Note: API Key must be set in the Convex Dashboard Environment Variables
     if (!process.env.API_KEY) {
@@ -159,7 +159,7 @@ export const submit = action({
         userId: args.userId,
         content: args.journalText,
         analysis: analysis,
-      });
+      }) as any;
 
       return result;
 

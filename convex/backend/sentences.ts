@@ -36,8 +36,8 @@ export const searchSentences = query({
   handler: async (ctx, args) => {
     const allSentences = await ctx.db.query("sentences").collect();
     return allSentences.filter((sentence) =>
-      sentence.chineseText.includes(args.searchTerm) ||
-      sentence.englishTranslation.toLowerCase().includes(args.searchTerm.toLowerCase())
+      sentence.original.includes(args.searchTerm) ||
+      sentence.translation.toLowerCase().includes(args.searchTerm.toLowerCase())
     );
   },
 });
@@ -45,14 +45,14 @@ export const searchSentences = query({
 // Add a new sentence
 export const addSentence = mutation({
   args: {
-    chineseText: v.string(),
+    original: v.string(),
     pinyin: v.optional(v.string()),
-    englishTranslation: v.string(),
+    translation: v.string(),
     difficulty: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     source: v.optional(v.string()),
     notes: v.optional(v.string()),
-    userId: v.optional(v.string()),
+    userId: v.string(),
   },
   handler: async (ctx, args) => {
     const sentenceId = await ctx.db.insert("sentences", {
@@ -67,9 +67,9 @@ export const addSentence = mutation({
 export const updateSentence = mutation({
   args: {
     id: v.id("sentences"),
-    chineseText: v.optional(v.string()),
+    original: v.optional(v.string()),
     pinyin: v.optional(v.string()),
-    englishTranslation: v.optional(v.string()),
+    translation: v.optional(v.string()),
     difficulty: v.optional(v.string()),
     tags: v.optional(v.array(v.string())),
     source: v.optional(v.string()),
@@ -95,7 +95,7 @@ export const getRandomSentences = query({
   args: { limit: v.number() },
   handler: async (ctx, args) => {
     const allSentences = await ctx.db.query("sentences").collect();
-    
+
     // Shuffle and return limited results
     const shuffled = allSentences.sort(() => Math.random() - 0.5);
     return shuffled.slice(0, args.limit);

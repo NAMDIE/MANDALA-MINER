@@ -50,11 +50,11 @@ export const generate = action({
   args: {
     sentenceId: v.id("sentences"),
   },
-  handler: async (ctx, args) => {
+  handler: async (ctx, args): Promise<{ status: string; url?: string }> => {
     // 1. Fetch Sentence Data
     const { text, existingAudio } = await ctx.runQuery(internal.generateAudio.getSentenceData, {
       sentenceId: args.sentenceId,
-    });
+    }) as { text: string; existingAudio?: string };
 
     // Optimization: Skip if audio already exists
     if (existingAudio) {
@@ -115,7 +115,7 @@ async function fetchMiniMaxWithRetry(text: string): Promise<string> {
 async function callMiniMaxAPI(text: string): Promise<string> {
   const apiKey = process.env.MINIMAX_API_KEY;
   const groupId = process.env.MINIMAX_GROUP_ID;
-  
+
   if (!apiKey || !groupId) {
     console.warn("MiniMax credentials not found. Returning mock URL.");
     // Simulate network delay
@@ -156,7 +156,7 @@ async function callMiniMaxAPI(text: string): Promise<string> {
      return "https://convex.storage/uploaded-file-url"; 
   }
   */
-  
+
   // Return dummy for now to satisfy TypeScript flow
   return `https://api.minimax.chat/generated/${Date.now()}.mp3`;
 }

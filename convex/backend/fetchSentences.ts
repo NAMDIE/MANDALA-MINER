@@ -9,17 +9,17 @@ import { Id, Doc } from "./_generated/dataModel";
 export interface PopulatedSentence {
   _id: Id<"sentences">;
   _creationTime: number;
-  userId: Id<"users">;
+  userId: string;
   journalId?: Id<"journals">;
   original: string;
-  pinyin: string;
+  pinyin?: string;
   translation: string;
   difficulty?: string;
   tags?: string[];
-  source: string;
+  source?: string;
   audioUrl?: string;
   createdAt: number;
-  
+
   // Enriched Data
   relatedGrammar: Doc<"grammar">[];
   characterDetails: Doc<"characters">[];
@@ -71,16 +71,16 @@ export const get = query({
 
     // 3. Populate Grammar and Characters
     // We process each sentence to find related dictionary entries.
-    
+
     const populatedSentences: PopulatedSentence[] = await Promise.all(
       limitedSentences.map(async (sentence) => {
-        
+
         // --- Join Grammar ---
         // Strategy: Check if any of the sentence tags match a known grammar point.
         // In a production app, we might store grammar IDs on the sentence, 
         // but here we infer connection via tags (as set by the AI in submitJournal).
         let relatedGrammar: Doc<"grammar">[] = [];
-        
+
         if (sentence.tags && sentence.tags.length > 0) {
           // We can't do an "IN" query easily, so we map the tags.
           // Optimization: This performs N queries per sentence. 
@@ -94,7 +94,7 @@ export const get = query({
               .first();
             return g;
           });
-          
+
           const results = await Promise.all(grammarPromises);
           relatedGrammar = results.filter((g): g is Doc<"grammar"> => g !== null);
         }
@@ -103,7 +103,7 @@ export const get = query({
         // Strategy: Break down the 'original' string into unique characters 
         // and fetch their details from the 'characters' table.
         const uniqueChars = Array.from(new Set(sentence.original.split("")));
-        
+
         // Filter out punctuation or non-Chinese characters roughly if needed,
         // but for now, we just query the table. If it's not there, it's ignored.
         const charPromises = uniqueChars.map(async (char) => {

@@ -1,5 +1,6 @@
 
-import { Sentence, ReviewItem } from "../backend/types";
+import { Sentence, ReviewItem } from "../convex/backend/types";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 /**
  * OfflineCache Utility
@@ -7,10 +8,7 @@ import { Sentence, ReviewItem } from "../backend/types";
  * Provides a persistence layer for offline functionality.
  * 
  * ADAPTER NOTE:
- * Since this runs in a Web Environment for the demo, we use `localStorage` 
- * as the backing store. In a React Native production build, this would be 
- * replaced with `@react-native-async-storage/async-storage` or `expo-sqlite`
- * without changing the method signatures.
+ * Uses `@react-native-async-storage/async-storage` for persistence.
  */
 
 // --------------------------------------------------------------------------
@@ -43,7 +41,7 @@ export interface PendingReviewAction {
 const Storage = {
   getItem: async (key: string): Promise<string | null> => {
     try {
-      return localStorage.getItem(key);
+      return await AsyncStorage.getItem(key);
     } catch (e) {
       console.error("Storage Read Error:", e);
       return null;
@@ -51,14 +49,14 @@ const Storage = {
   },
   setItem: async (key: string, value: string): Promise<void> => {
     try {
-      localStorage.setItem(key, value);
+      await AsyncStorage.setItem(key, value);
     } catch (e) {
       console.error("Storage Write Error:", e);
     }
   },
   removeItem: async (key: string): Promise<void> => {
     try {
-      localStorage.removeItem(key);
+      await AsyncStorage.removeItem(key);
     } catch (e) {
       console.error("Storage Delete Error:", e);
     }
@@ -70,7 +68,7 @@ const Storage = {
 // --------------------------------------------------------------------------
 
 export const OfflineCache = {
-  
+
   // --- Sentences ---
 
   /**
@@ -130,7 +128,7 @@ export const OfflineCache = {
    */
   async queuePendingReview(action: Omit<PendingReviewAction, "id" | "timestamp">): Promise<void> {
     const pending = await this.getPendingReviews();
-    
+
     const newAction: PendingReviewAction = {
       ...action,
       id: crypto.randomUUID(),
